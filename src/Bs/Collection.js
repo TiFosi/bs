@@ -233,13 +233,20 @@ Bs.define('Bs.Collection', {
 		 */
 
 		Collection.prototype.addList = function (dataList) {
+            var dfdFinal = new $.Deferred(), dfds = [];
+
 			if (!dataList) {
 				return this;
 			}
 			for (var i = 0, item; item = dataList[i]; i++) {
-				item = this.add(item);
+                dfds.push(this.add(item));
 			}
-			return this;
+
+            $.when.apply($, dfds).done(function () {
+                dfdFinal.resolve();
+            });
+
+			return dfdFinal;
 		};
 
 		/**

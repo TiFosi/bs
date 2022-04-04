@@ -2996,13 +2996,20 @@ Bs.define('Bs.Collection', {
 		 */
 
 		Collection.prototype.addList = function (dataList) {
+            var dfdFinal = new $.Deferred(), dfds = [];
+
 			if (!dataList) {
 				return this;
 			}
 			for (var i = 0, item; item = dataList[i]; i++) {
-				item = this.add(item);
+                dfds.push(this.add(item));
 			}
-			return this;
+
+            $.when.apply($, dfds).done(function () {
+                dfdFinal.resolve();
+            });
+
+			return dfdFinal;
 		};
 
 		/**
@@ -7602,11 +7609,14 @@ Bs.define('Bs.View.Collection', {
                 if (me.bindData) {
                     var previousAddFn = me.getCollection().add;
                     me.collection.add = function (data) {
+                        var dfd = new $.Deferred();
                         var item = previousAddFn.call(me.collection, data);
                         if (me.rendered && item.isNew() === false) {
-                            me.renderOne(item);
+                            me.renderOne(item).on('ready', function () {
+                                dfd.resolve();
+                            });
                         }
-                        return item;
+                        return dfd;
                     };
 
                     var previousRemoveFn = me.getCollection().remove;

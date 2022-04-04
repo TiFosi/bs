@@ -199,11 +199,14 @@ Bs.define('Bs.View.Collection', {
                 if (me.bindData) {
                     var previousAddFn = me.getCollection().add;
                     me.collection.add = function (data) {
+                        var dfd = new $.Deferred();
                         var item = previousAddFn.call(me.collection, data);
                         if (me.rendered && item.isNew() === false) {
-                            me.renderOne(item);
+                            me.renderOne(item).on('ready', function () {
+                                dfd.resolve();
+                            });
                         }
-                        return item;
+                        return dfd;
                     };
 
                     var previousRemoveFn = me.getCollection().remove;
